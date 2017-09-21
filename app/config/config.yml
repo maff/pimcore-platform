@@ -5,6 +5,9 @@ imports:
     - { resource: services.yml }
     - { resource: 'local/' }
 
+framework:
+    secret: '%secret%'
+
 doctrine:
     dbal:
         connections:

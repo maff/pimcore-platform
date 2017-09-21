@@ -19,4 +19,5 @@ if (isset($_ENV['PLATFORM_RELATIONSHIPS'])) {
 
 if (isset($_ENV['PLATFORM_PROJECT_ENTROPY'])) {
     $container->setParameter('secret', $_ENV['PLATFORM_PROJECT_ENTROPY']);
+    $container->setParameter('kernel.secret', $_ENV['PLATFORM_PROJECT_ENTROPY']);
 }

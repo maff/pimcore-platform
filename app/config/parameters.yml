@@ -1,4 +1,5 @@
 parameters:
+    secret: default_secret
     database_host: ~
     database_port: ~
     database_name: ~
