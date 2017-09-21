@@ -43,6 +43,13 @@ class Installer
     private $profileLocator;
 
     /**
+     * If false, profile files won't be copied
+     *
+     * @var bool
+     */
+    private $copyProfileFiles = true;
+
+    /**
      * @var bool
      */
     private $overwriteExistingFiles = true;
@@ -68,15 +75,36 @@ class Installer
 
     public function __construct(
         LoggerInterface $logger,
-        ProfileLocator $profileLocator,
-        string $profile = null,
-        array $dbCredentials = []
+        ProfileLocator $profileLocator
     )
     {
         $this->logger         = $logger;
         $this->profileLocator = $profileLocator;
-        $this->profile        = $profile;
-        $this->dbCredentials  = $dbCredentials ?? [];
+    }
+
+    public function setCopyProfileFiles(bool $copyProfile)
+    {
+        $this->copyProfileFiles = $copyProfile;
+    }
+
+    public function setProfile(string $profile = null)
+    {
+        $this->profile = $profile;
+    }
+
+    public function setDbCredentials(array $dbCredentials = [])
+    {
+        $this->dbCredentials = $dbCredentials;
+    }
+
+    public function setOverwriteExistingFiles(bool $overwriteExistingFiles)
+    {
+        $this->overwriteExistingFiles = $overwriteExistingFiles;
+    }
+
+    public function setSymlink(bool $symlink)
+    {
+        $this->symlink = $symlink;
     }
 
     public function needsProfile(): bool
@@ -87,22 +115,6 @@ class Installer
     public function needsDbCredentials(): bool
     {
         return empty($this->dbCredentials);
-    }
-
-    /**
-     * @param bool $overwriteExistingFiles
-     */
-    public function setOverwriteExistingFiles(bool $overwriteExistingFiles)
-    {
-        $this->overwriteExistingFiles = $overwriteExistingFiles;
-    }
-
-    /**
-     * @param bool $symlink
-     */
-    public function setSymlink(bool $symlink)
-    {
-        $this->symlink = $symlink;
     }
 
     public function checkPrerequisites(): array
@@ -253,9 +265,12 @@ class Installer
             'profile' => $profile->getName()
         ]);
 
-        $errors = $this->copyProfileFiles($profile);
-        if (count($errors) > 0) {
-            return $errors;
+        $errors = [];
+        if ($this->copyProfileFiles) {
+            $errors = $this->doCopyProfileFiles($profile);
+            if (count($errors) > 0) {
+                return $errors;
+            }
         }
 
         $setup = new Setup();
@@ -284,7 +299,7 @@ class Installer
         return $errors;
     }
 
-    private function copyProfileFiles(Profile $profile, array $errors = []): array
+    private function doCopyProfileFiles(Profile $profile, array $errors = []): array
     {
         $fs = new Filesystem();
 
