@@ -60,6 +60,18 @@ class Composer
         }
     }
 
+    private static function checkVarPaths(string $rootPath)
+    {
+        $fs = new \Symfony\Component\Filesystem\Filesystem();
+
+        foreach (['var', 'web/var'] as $p) {
+            $path = $rootPath . '/' . $p;
+            if (!$fs->exists($path)) {
+                $fs->mkdir($path);
+            }
+        }
+    }
+
     /**
      * @param Event $event
      */
@@ -68,6 +80,7 @@ class Composer
         $rootPath = self::getRootPath($event);
         self::parametersYmlCheck($rootPath);
         self::zendFrameworkOptimization($rootPath);
+        self::checkVarPaths($rootPath);
     }
 
     /**
@@ -78,6 +91,7 @@ class Composer
         $rootPath = self::getRootPath($event);
         self::parametersYmlCheck($rootPath);
         self::zendFrameworkOptimization($rootPath);
+        self::checkVarPaths($rootPath);
     }
 
     /**
