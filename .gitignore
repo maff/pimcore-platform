@@ -3,7 +3,6 @@
 
 # symfony default
 /.web-server-pid
-/app/config/parameters.yml
 /build/
 /phpunit.xml
 /web/bundles/
