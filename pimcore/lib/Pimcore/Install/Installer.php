@@ -21,6 +21,7 @@ use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use Pimcore\Config;
 use Pimcore\Db\Connection;
+use Pimcore\Install\Profile\FileInstaller;
 use Pimcore\Install\Profile\Profile;
 use Pimcore\Install\Profile\ProfileLocator;
 use Pimcore\Model\Tool\Setup;
@@ -41,6 +42,11 @@ class Installer
      * @var ProfileLocator
      */
     private $profileLocator;
+
+    /**
+     * @var FileInstaller
+     */
+    private $fileInstaller;
 
     /**
      * If false, profile files won't be copied
@@ -75,11 +81,13 @@ class Installer
 
     public function __construct(
         LoggerInterface $logger,
-        ProfileLocator $profileLocator
+        ProfileLocator $profileLocator,
+        FileInstaller $fileInstaller
     )
     {
         $this->logger         = $logger;
         $this->profileLocator = $profileLocator;
+        $this->fileInstaller  = $fileInstaller;
     }
 
     public function setCopyProfileFiles(bool $copyProfile)
@@ -267,7 +275,7 @@ class Installer
 
         $errors = [];
         if ($this->copyProfileFiles) {
-            $errors = $this->doCopyProfileFiles($profile);
+            $errors = $this->fileInstaller->installFiles($profile, $this->overwriteExistingFiles, $this->symlink);
             if (count($errors) > 0) {
                 return $errors;
             }
@@ -295,61 +303,6 @@ class Installer
         $errors = $this->setupProfileDatabase($setup, $profile, $userCredentials, $errors);
 
         Tool::clearSymfonyCache($kernel->getContainer());
-
-        return $errors;
-    }
-
-    private function doCopyProfileFiles(Profile $profile, array $errors = []): array
-    {
-        $fs = new Filesystem();
-
-        $symlink = $this->symlink;
-        if ($symlink && '\\' === DIRECTORY_SEPARATOR) {
-            $this->logger->warning('Symlink was chosen as installation method, but the installer can\'t symlink installation files on Windows. Copying selected files instead');
-            $symlink = false;
-        }
-
-        $logAction = $symlink ? 'Symlinking' : 'Copying';
-
-        foreach ($profile->getFilesToAdd() as $source => $target) {
-            $target = PIMCORE_PROJECT_ROOT . '/' . $target;
-
-            try {
-                if ($fs->exists($target)) {
-                    if ($this->overwriteExistingFiles) {
-                        $this->logger->warning('Removing existing file {file}', [
-                            'file' => $target
-                        ]);
-
-                        $fs->remove($target);
-                    } else {
-                        $this->logger->info('Skipping ' . $logAction . ' {source} to {target}. The target path already exists.');
-                        continue;
-                    }
-                }
-
-                $this->logger->info($logAction . ' {source} to {target}', [
-                    'source' => $source,
-                    'target' => $target
-                ]);
-
-                if ($symlink) {
-                    // create symlinks as relative links to make them portable
-                    $relativeSource = rtrim($fs->makePathRelative($source, dirname($target)), '/');
-
-                    $fs->symlink($relativeSource, $target);
-                } else {
-                    if (is_dir($source)) {
-                        $fs->mirror($source, $target);
-                    } else {
-                        $fs->copy($source, $target);
-                    }
-                }
-            } catch (\Exception $e) {
-                $this->logger->error($e);
-                $errors[] = $e->getMessage();
-            }
-        }
 
         return $errors;
     }
