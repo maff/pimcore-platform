@@ -1,5 +1,14 @@
+imports:
+    - { resource: parameters_platform.php }
+
 pimcore_install:
-    info_message: Database credentials are set via <strong>platform.sh</strong>'s environment variables.
+    info_message: 'Database credentials are set via <strong>platform.sh</strong> environment variables. Used database is %database_name%'
     copy_profile_files: false
     parameters:
         profile: demo-basic-twig
+        database_credentials:
+            host: '%database_host%'
+            port: '%database_port%'
+            user: '%database_user%'
+            password: '%database_password%'
+            dbname: '%database_name%'
