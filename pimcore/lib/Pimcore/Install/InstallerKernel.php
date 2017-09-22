@@ -89,9 +89,22 @@ class InstallerKernel extends Kernel
      */
     protected function configureContainer(ContainerBuilder $c, LoaderInterface $loader)
     {
+        // load installer config files if available
+        foreach (['php', 'yml', 'xml'] as $extension) {
+            $file = sprintf('%s/app/config/installer.%s', $this->getProjectDir(), $extension);
+
+            if (file_exists($file)) {
+                $loader->load($file);
+            }
+        }
+
+        if (!$c->hasParameter('secret')) {
+            $c->setParameter('secret', uniqid('installer-', true));
+        }
+
         // configure bundles
         $c->loadFromExtension('framework', [
-            'secret'     => uniqid('installer-', true),
+            'secret'     => '%secret%',
             'profiler'   => false,
             'templating' => ['engines' => ['twig']],
             'php_errors' => [
@@ -129,15 +142,6 @@ class InstallerKernel extends Kernel
                 ]
             ]
         ]);
-
-        // load installer config files if available
-        foreach (['php', 'yml', 'xml'] as $extension) {
-            $file = sprintf('%s/app/config/installer.%s', $this->getProjectDir(), $extension);
-
-            if (file_exists($file)) {
-                $loader->load($file);
-            }
-        }
     }
 
     /**

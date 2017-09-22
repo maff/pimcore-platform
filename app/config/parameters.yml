@@ -1,8 +1,7 @@
 parameters:
     secret: default_secret
-    database_host: ~
-    database_port: ~
-    database_name: ~
-    database_user: ~
-    database_password: ~
-
+    database_host: 'empty'
+    database_port: 'empty'
+    database_name: 'empty'
+    database_user: 'empty'
+    database_password: 'empty'
