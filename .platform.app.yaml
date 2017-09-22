@@ -46,6 +46,10 @@ web:
             root: "web"
             # The front-controller script to send non-static requests to.
             passthru: "/app.php"
+            rules:
+                # cache-buster rule for scripts & stylesheets embedded using view helpers
+                '^/cache\-buster\-\d+/(?<file>.*)$'
+                    passthru: '$file'
 
         "/install":
             root: "web"
