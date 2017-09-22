@@ -167,11 +167,13 @@ class Installer
             /** @var Connection $db */
             $db = DriverManager::getConnection($dbConfig, $config);
 
+            /*
             // check utf-8 encoding
             $result = $db->fetchRow('SHOW VARIABLES LIKE "character\_set\_database"');
             if (!in_array($result['Value'], ['utf8mb4'])) {
                 $errors[] = 'Database charset is not utf8mb4';
             }
+            */
         } catch (\Exception $e) {
             $errors[] = sprintf('Couldn\'t establish connection to MySQL: %s', $e->getMessage());
         }
